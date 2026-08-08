@@ -245,6 +245,10 @@
                   <svg class="btn-icon" aria-hidden="true"><use href="/assets/icons.svg#spark"></use></svg>
                   Starter templates
                 </button>
+                <button id="clear-editor-btn" type="button" class="btn btn-secondary">
+                  <svg class="btn-icon" aria-hidden="true"><use href="/assets/icons.svg#x-circle"></use></svg>
+                  Clear
+                </button>
                 <input type="text" id="course-name-input" class="course-name-input" placeholder="Mash group (optional)" aria-label="Mash group">
               </div>
             </div>
@@ -793,39 +797,67 @@
   <!-- Preview Modal -->
   <div id="preview-modal" class="modal preview-modal hidden" role="dialog" aria-modal="true" aria-labelledby="preview-modal-title">
     <div class="modal-content preview-modal-content">
-      <div class="preview-device">
-        <div class="preview-device-bar">
-          <div>
+      <div class="preview-workbench">
+        <div class="preview-toolbar">
+          <div class="preview-toolbar-title">
             <span class="preview-device-status" aria-hidden="true"></span>
-            <span id="preview-modal-title">Question preview</span>
+            <div>
+              <span id="preview-modal-title">Participant preview</span>
+              <small>Matches the live question screen</small>
+            </div>
           </div>
+          <div class="preview-toolbar-actions">
+            <div class="preview-size-toggle" role="group" aria-label="Preview size">
+              <button id="preview-desktop-btn" class="preview-size-btn active" type="button" aria-pressed="true">
+                Desktop
+              </button>
+              <button id="preview-phone-btn" class="preview-size-btn" type="button" aria-pressed="false">
+                Phone
+              </button>
+            </div>
           <button id="close-preview-btn" class="preview-close" type="button" aria-label="Close preview">
             <svg aria-hidden="true"><use href="/assets/icons.svg#x-circle"></use></svg>
           </button>
+          </div>
         </div>
-        <div class="preview-device-screen">
-          <div id="preview-player-header" class="player-header preview-player-header">
-            <span id="preview-qnum-label" class="player-qnum">Q<span id="preview-q-num">1</span>/<span id="preview-total-q-num">10</span></span>
-            <span class="player-score">0 pts</span>
+        <div class="preview-stage-wrap">
+          <div id="preview-device" class="preview-device preview-device-desktop">
+            <div class="preview-device-screen">
+              <div id="preview-question-card" class="preview-question-card">
+                <div id="preview-player-header" class="player-header preview-player-header">
+                  <span id="preview-qnum-label" class="player-qnum">Q<span id="preview-q-num">1</span>/<span id="preview-total-q-num">10</span></span>
+                  <span id="preview-score" class="player-score">0 pts</span>
+                </div>
+                <div id="preview-timer-ring" class="player-timer-ring preview-timer-ring" aria-label="Question time limit">
+                  <svg class="timer-svg" viewBox="0 0 100 100" aria-hidden="true">
+                    <circle class="timer-bg" cx="50" cy="50" r="45"></circle>
+                    <circle class="timer-progress" cx="50" cy="50" r="45"></circle>
+                  </svg>
+                  <div id="preview-timer" class="timer-text">20</div>
+                </div>
+                <h1 class="player-question preview-question" id="preview-question-text">Question?</h1>
+                <div class="player-options preview-options" id="preview-options-container"></div>
+              </div>
+              <div id="preview-section-card" class="preview-section-card hidden">
+                <div class="section-intro-card">
+                  <p id="preview-section-eyebrow" class="section-intro-eyebrow">Section</p>
+                  <h1 id="preview-section-title" class="section-intro-title"></h1>
+                  <p id="preview-section-subtitle" class="section-intro-subtitle hidden"></p>
+                </div>
+              </div>
+            </div>
           </div>
-          <h1 class="player-question preview-question" id="preview-question-text">Question?</h1>
-          <div class="player-options preview-options" id="preview-options-container"></div>
-          <div id="preview-section-card" class="preview-section-card hidden">
-            <p id="preview-section-eyebrow" class="section-eyebrow">Section</p>
-            <h1 id="preview-section-title" class="preview-question"></h1>
-            <p id="preview-section-subtitle" class="live-section-subtitle hidden"></p>
-          </div>
-          <div class="preview-footer">
-            <button id="preview-prev-btn" class="btn btn-secondary" type="button">
-              <svg class="btn-icon" aria-hidden="true"><use href="/assets/icons.svg#arrow-left"></use></svg>
-              Previous
-            </button>
-            <span class="preview-footer-hint">Check every question before launch</span>
-            <button id="preview-next-btn" class="btn btn-primary" type="button">
-              Next
-              <svg class="btn-icon" aria-hidden="true"><use href="/assets/icons.svg#chevron-right"></use></svg>
-            </button>
-          </div>
+        </div>
+        <div class="preview-footer">
+          <button id="preview-prev-btn" class="btn btn-secondary" type="button">
+            <svg class="btn-icon" aria-hidden="true"><use href="/assets/icons.svg#arrow-left"></use></svg>
+            Previous
+          </button>
+          <span id="preview-step-label" class="preview-footer-hint">Step 1 of 1</span>
+          <button id="preview-next-btn" class="btn btn-primary" type="button">
+            Next
+            <svg class="btn-icon" aria-hidden="true"><use href="/assets/icons.svg#chevron-right"></use></svg>
+          </button>
         </div>
       </div>
     </div>
@@ -858,14 +890,18 @@
   <!-- Custom Confirmation Modal -->
   <div id="confirm-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="confirm-modal-title" aria-describedby="confirm-modal-message">
     <div class="modal-content confirm-modal-content">
-      <div class="modal-header">
-        <h3 id="confirm-modal-title">Confirmation</h3>
-        <button id="confirm-modal-close" class="btn-close" type="button" aria-label="Close">&times;</button>
+      <button id="confirm-modal-close" class="btn-close confirm-modal-close" type="button" aria-label="Close">&times;</button>
+      <div class="confirm-modal-body">
+        <div class="confirm-modal-icon" aria-hidden="true">
+          <svg><use id="confirm-modal-icon-use" href="/assets/icons.svg#spark"></use></svg>
+        </div>
+        <div class="confirm-modal-copy">
+          <p id="confirm-modal-eyebrow" class="section-eyebrow">Please confirm</p>
+          <h3 id="confirm-modal-title">Confirmation</h3>
+          <p id="confirm-modal-message">Are you sure?</p>
+        </div>
       </div>
-      <div class="modal-body">
-        <p id="confirm-modal-message">Are you sure?</p>
-      </div>
-      <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px;">
+      <div class="confirm-modal-footer">
         <button id="confirm-modal-cancel" type="button" class="btn btn-secondary">Cancel</button>
         <button id="confirm-modal-ok" type="button" class="btn btn-danger">Confirm</button>
       </div>

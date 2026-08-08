@@ -89,6 +89,7 @@ const quizMarkdown = document.getElementById('quiz-markdown');
 const uploadBtn = document.getElementById('upload-btn');
 const uploadBtnLabel = document.getElementById('upload-btn-label');
 const previewBtn = document.getElementById('preview-btn');
+const clearEditorBtn = document.getElementById('clear-editor-btn');
 const courseNameInput = document.getElementById('course-name-input');
 const uploadStatus = document.getElementById('upload-status');
 
@@ -107,7 +108,15 @@ const previewQuestionText = document.getElementById('preview-question-text');
 const previewOptionsContainer = document.getElementById('preview-options-container');
 const previewPrevBtn = document.getElementById('preview-prev-btn');
 const previewNextBtn = document.getElementById('preview-next-btn');
+const previewQuestionCard = document.getElementById('preview-question-card');
 const previewPlayerHeader = document.getElementById('preview-player-header');
+const previewScore = document.getElementById('preview-score');
+const previewTimer = document.getElementById('preview-timer');
+const previewTimerRing = document.getElementById('preview-timer-ring');
+const previewDevice = document.getElementById('preview-device');
+const previewDesktopBtn = document.getElementById('preview-desktop-btn');
+const previewPhoneBtn = document.getElementById('preview-phone-btn');
+const previewStepLabel = document.getElementById('preview-step-label');
 const previewSectionCard = document.getElementById('preview-section-card');
 const previewSectionEyebrow = document.getElementById('preview-section-eyebrow');
 const previewSectionTitle = document.getElementById('preview-section-title');
@@ -133,6 +142,7 @@ const STARTER_TEMPLATE_FILES = Object.freeze({
 
 // 'quiz' | 'survey' — set from Host Home; default quiz for trial.
 let studioMode = 'quiz';
+const studioDrafts = { quiz: '', survey: '' };
 
 let previewQuizData = null;
 let previewCurrentQuestionIndex = 0;
@@ -233,6 +243,8 @@ const rankingParticipantsBody = document.getElementById('ranking-participants-bo
 const rankingThresholdNote = document.getElementById('ranking-threshold-note');
 const rankingCountBadge = document.getElementById('ranking-count-badge');
 const noRankingMsg = document.getElementById('no-ranking-msg');
+const trickyQuestionsSection = document.getElementById('tricky-questions-section');
+const rankingSection = document.getElementById('ranking-section');
 
 // State
 let socket = null;
@@ -429,9 +441,18 @@ function applyStudioModeCopy() {
   }
 }
 
+function switchStudioMode(mode) {
+  if (mode !== 'survey' && mode !== 'quiz') return;
+  if (mode === studioMode) return;
+
+  studioDrafts[studioMode] = quizMarkdown.value;
+  studioMode = mode;
+  quizMarkdown.value = studioDrafts[studioMode];
+}
+
 function showInstructorStudio(mode) {
-  if (mode === 'survey' || mode === 'quiz') {
-    studioMode = mode;
+  if (!isTrialMode()) {
+    switchStudioMode(mode);
   }
   if (isTrialMode()) studioMode = 'quiz';
   applyStudioModeCopy();
@@ -450,6 +471,10 @@ function showInstructorStudio(mode) {
     ? 'Guest studio'
     : (studioMode === 'survey' ? 'Survey studio' : 'Host studio');
 }
+
+quizMarkdown.addEventListener('input', () => {
+  if (!isTrialMode()) studioDrafts[studioMode] = quizMarkdown.value;
+});
 
 function sessionApiPath(suffix = '') {
   const base = isTrialMode() ? '/api/trial/session' : '/api/admin/session';
@@ -494,6 +519,7 @@ function configureInstructorWorkspace() {
   builderCardDescription.textContent = 'Questions, options, timers and scoring stay in one readable file.';
   uploadBtnLabel.textContent = 'Load quiz';
   openTemplateBtn.classList.remove('hidden');
+  clearEditorBtn.classList.remove('hidden');
 
   window.MarkdownMashSettings.resetForAccount(
     { settingsModal, settingsTabs, settingsPanels, instructorList },
@@ -519,6 +545,7 @@ function configureTrialWorkspace(data) {
   builderCardDescription.textContent = `${data.template.questionCount} quick questions · Nothing is saved`;
   uploadBtnLabel.textContent = 'Launch practice room';
   openTemplateBtn.classList.add('hidden');
+  clearEditorBtn.classList.add('hidden');
   showAuthenticatedWorkspace();
   startTrialCountdown();
 }
@@ -603,6 +630,28 @@ openTemplateBtn?.addEventListener('click', () => {
   firstTemplate?.focus({ preventScroll: true });
 });
 
+clearEditorBtn?.addEventListener('click', async () => {
+  if (!quizMarkdown.value.trim()) {
+    quizMarkdown.focus({ preventScroll: true });
+    return;
+  }
+
+  const kind = studioMode === 'survey' ? 'survey' : 'quiz';
+  const confirmed = await showConfirmModal({
+    title: `Clear ${kind} Markdown?`,
+    message: `Remove all Markdown from this ${kind} draft?`,
+    confirmText: 'Clear Markdown',
+    cancelText: 'Keep Draft',
+    danger: true
+  });
+  if (!confirmed) return;
+
+  quizMarkdown.value = '';
+  studioDrafts[studioMode] = '';
+  uploadStatus.classList.add('hidden');
+  quizMarkdown.focus({ preventScroll: true });
+});
+
 closeTemplateBtn?.addEventListener('click', closeTemplateModal);
 
 templateModal?.addEventListener('click', event => {
@@ -634,6 +683,7 @@ templateCards.forEach(card => {
         throw new Error('Template file was empty');
       }
       quizMarkdown.value = markdown;
+      studioDrafts[studioMode] = markdown;
       closeTemplateModal();
       showStatus('upload-status', 'Starter template loaded. Edit anything you like, then preview your questions.', true);
       quizMarkdown.focus({ preventScroll: true });
@@ -1037,6 +1087,8 @@ function showConfirmModal({
     const cancelBtn = document.getElementById('confirm-modal-cancel');
     const okBtn = document.getElementById('confirm-modal-ok');
     const closeBtn = document.getElementById('confirm-modal-close');
+    const eyebrowEl = document.getElementById('confirm-modal-eyebrow');
+    const iconUse = document.getElementById('confirm-modal-icon-use');
 
     if (!modal) {
       resolve(false);
@@ -1050,6 +1102,18 @@ function showConfirmModal({
     okBtn.className = danger ? 'btn btn-danger' : 'btn btn-primary';
     cancelBtn.textContent = cancelText;
     cancelBtn.classList.toggle('hidden', !showCancel);
+    modal.classList.toggle('confirm-modal-danger', danger);
+    modal.classList.toggle('confirm-modal-notice', !showCancel);
+    modal.setAttribute('role', danger ? 'alertdialog' : 'dialog');
+    eyebrowEl.textContent = danger
+      ? 'Action required'
+      : (showCancel ? 'Please confirm' : 'Markdown Mash');
+    iconUse.setAttribute(
+      'href',
+      danger
+        ? '/assets/icons.svg#target-alert'
+        : (showCancel ? '/assets/icons.svg#spark' : '/assets/icons.svg#check-circle')
+    );
 
     function cleanup() {
       modal.classList.add('hidden');
@@ -1059,6 +1123,7 @@ function showConfirmModal({
       modal.removeEventListener('click', onBackdrop);
       document.removeEventListener('keydown', onKeydown);
       cancelBtn.classList.remove('hidden');
+      modal.classList.remove('confirm-modal-danger', 'confirm-modal-notice');
       if (previousFocus && typeof previousFocus.focus === 'function') previousFocus.focus();
     }
 
@@ -1505,6 +1570,19 @@ previewPrevBtn.addEventListener('click', () => {
   }
 });
 
+function setPreviewSize(size) {
+  const phone = size === 'phone';
+  previewDevice.classList.toggle('preview-device-phone', phone);
+  previewDevice.classList.toggle('preview-device-desktop', !phone);
+  previewDesktopBtn.classList.toggle('active', !phone);
+  previewPhoneBtn.classList.toggle('active', phone);
+  previewDesktopBtn.setAttribute('aria-pressed', String(!phone));
+  previewPhoneBtn.setAttribute('aria-pressed', String(phone));
+}
+
+previewDesktopBtn.addEventListener('click', () => setPreviewSize('desktop'));
+previewPhoneBtn.addEventListener('click', () => setPreviewSize('phone'));
+
 // Renders the current preview step: a section card for kind === 'section',
 // or the question card (with the ungraded badge) for kind === 'question'.
 function renderPreviewQuestion() {
@@ -1518,12 +1596,11 @@ function renderPreviewQuestion() {
 
   previewPrevBtn.disabled = previewCurrentQuestionIndex === 0;
   previewNextBtn.disabled = previewCurrentQuestionIndex === previewQuizData.steps.length - 1;
+  previewStepLabel.textContent = `Step ${previewCurrentQuestionIndex + 1} of ${previewQuizData.steps.length}`;
 }
 
 function renderPreviewSectionCard(step) {
-  previewPlayerHeader.classList.add('hidden');
-  previewQuestionText.classList.add('hidden');
-  previewOptionsContainer.classList.add('hidden');
+  previewQuestionCard.classList.add('hidden');
   previewSectionCard.classList.remove('hidden');
 
   const sections = previewQuizData.steps.filter(s => s.kind === 'section');
@@ -1538,12 +1615,14 @@ function renderPreviewSectionCard(step) {
 
 function renderPreviewQuestionCard(q) {
   previewSectionCard.classList.add('hidden');
+  previewQuestionCard.classList.remove('hidden');
   previewPlayerHeader.classList.remove('hidden');
-  previewQuestionText.classList.remove('hidden');
-  previewOptionsContainer.classList.remove('hidden');
 
   const qnumLabel = document.getElementById('preview-qnum-label');
   const isSurveyPreview = previewQuizData.sessionKind === 'survey' || q.type === 'survey';
+  previewScore.classList.toggle('hidden', isSurveyPreview);
+  previewTimerRing.classList.remove('hidden');
+  previewTimer.textContent = q.timeLimit || 20;
   if (isSurveyPreview) {
     qnumLabel.innerHTML = 'Q<span id="preview-q-num"></span>/<span id="preview-total-q-num"></span>';
     document.getElementById('preview-q-num').textContent = q.displayNumber || (previewQuizData.questions.indexOf(q) + 1);
@@ -1564,11 +1643,12 @@ function renderPreviewQuestionCard(q) {
   q.options.forEach((opt, idx) => {
     const div = document.createElement('div');
     const isCorrect = !isSurveyPreview && q.correctIndices.includes(idx);
-    div.className = `preview-option${isCorrect ? ' preview-option-correct' : ''}`;
+    div.className = `player-option preview-option${isCorrect ? ' preview-option-correct' : ''}`;
+    div.setAttribute('aria-disabled', 'true');
     div.innerHTML = `
-      <span class="preview-option-letter">${String.fromCharCode(65 + idx)}</span>
-      <span>${markdown.inline(opt)}</span>
-      ${isCorrect ? '<svg aria-label="Correct answer"><use href="/assets/icons.svg#check-circle"></use></svg>' : ''}
+      <span class="option-letter">${String.fromCharCode(65 + idx)}</span>
+      <span class="option-text">${markdown.inline(opt)}</span>
+      ${isCorrect ? '<svg class="preview-correct-mark" aria-label="Correct answer"><use href="/assets/icons.svg#check-circle"></use></svg>' : ''}
     `;
     previewOptionsContainer.appendChild(div);
   });
@@ -1639,6 +1719,9 @@ function showSessionInfo(session) {
 
 // Reset to upload state
 function resetToUploadState() {
+  const shouldClearCompletedDraft = Boolean(sessionCode || currentQuiz);
+  const completedStudioMode = studioMode;
+
   sessionCode = null;
   currentQuiz = null;
   sidekicksToggle.checked = true;
@@ -1668,6 +1751,12 @@ function resetToUploadState() {
   trialCompletionCta.classList.add('hidden');
 
   participantList.innerHTML = '';
+
+  if (shouldClearCompletedDraft) {
+    studioDrafts[completedStudioMode] = '';
+    quizMarkdown.value = '';
+    courseNameInput.value = '';
+  }
 
   // Remove session-lost banner if present
   const banner = document.getElementById('session-lost-banner');
@@ -2804,6 +2893,12 @@ async function loadSessionDetail(code) {
 
   } catch (err) {
     console.error('Failed to load session detail', err);
+    sessionDetailSection.classList.add('hidden');
+    analyticsSection.classList.remove('hidden');
+    showNoticeModal(
+      'The session report could not be rendered. Your saved results are still intact; please try again.',
+      'Report Unavailable'
+    );
   }
 }
 

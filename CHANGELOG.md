@@ -2,6 +2,24 @@
 
 All notable changes to Markdown Mash are documented here.
 
+## [1.6.1] - 2026-08-08
+
+### Fixed
+
+- Quiz leaderboards and survey response breakdowns render again in session analytics. The stored results were intact; an unbound pair of detail-view elements had stopped the shared renderer before it could populate either report.
+- Analytics renderer failures now return to the session list with a clear message instead of leaving a silent blank report.
+
+### Changed
+
+- Confirmation dialogs now use a cohesive inset layout with clearer hierarchy, contextual icons, safer action spacing, and a phone-specific stacked action layout.
+- Quiz and survey previews now reuse the live participant question, timer, option, and section-card design, with dedicated desktop and phone views.
+- Participant section cards are substantially larger and more presentation-led while remaining centered and overflow-safe on phones.
+- Quiz and survey Markdown drafts are kept separate when switching studios. A completed or cancelled session clears its draft, and both studios provide an explicit Clear action with confirmation.
+
+### Notes
+
+- No database migration is required for v1.6.1.
+
 ## [1.6.0] - 2026-08-08
 
 ### Added

@@ -10,6 +10,16 @@
 
 A lightweight, real-time quiz and survey application for classrooms and events. Host interactive quizzes with live scoring or anonymous surveys with shared summaries — no participant accounts required.
 
+## What's New in v1.6.1
+
+### Analytics restoration and a more polished live-workflow UI
+
+- **Session reports are restored** — quiz leaderboards and survey response breakdowns render correctly for new and historical sessions.
+- **More confident dialogs** — confirmation and destructive actions have clearer hierarchy, intentional spacing, and polished phone layouts.
+- **True-to-life previews** — quiz and survey previews now mirror the participant question screen, including timers, live option cards, section cards, and a dedicated phone view.
+- **Larger participant section cards** — section transitions make better use of the screen without overflowing smaller phones.
+- **Clean studio switching** — quiz and survey drafts stay separate, completed sessions clear their Markdown, and both studios include an explicit Clear action.
+
 ## What's New in v1.6.0
 
 ### Survey polish, clearer analytics, and safer quiz loading
