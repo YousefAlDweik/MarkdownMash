@@ -791,25 +791,58 @@ function renderOptions(options) {
 
 // Select answer
 function selectAnswer(index, btn) {
-  if (selectedAnswer !== null) return;
+    // Store the selected answer without submitting it
+    selectedAnswer = index;
 
-  selectedAnswer = index;
+    // Allow participant to change the selected option
+    const allBtns = optionsContainer.querySelectorAll('.player-option');
+    allBtns.forEach(b => {
+        b.classList.remove('selected');
+    });
 
-  const allBtns = optionsContainer.querySelectorAll('.player-option');
-  allBtns.forEach(b => {
-    b.classList.remove('selected');
-    b.disabled = true;
-  });
-  btn.classList.add('selected');
+    // Highlight the currently selected option
+    btn.classList.add('selected');
 
-  socket.emit('submit_answer', {
-    participantId,
-    sessionCode,
-    questionId: currentQuestion.id,
-    answerIndex: index
-  });
+    // Show/enable the Submit Answer button
+    let submitBtn = document.getElementById('submit-answer-btn');
+
+    if (!submitBtn) {
+        submitBtn = document.createElement('button');
+        submitBtn.id = 'submit-answer-btn';
+        submitBtn.type = 'button';
+        submitBtn.className = 'submit-answer-btn';
+        submitBtn.textContent = 'Submit Answer';
+
+        submitBtn.addEventListener('click', submitSelectedAnswer);
+
+        optionsContainer.appendChild(submitBtn);
+    }
+
+    submitBtn.disabled = false;
 }
+function submitSelectedAnswer() {
+    if (selectedAnswer === null) return;
 
+    const submitBtn = document.getElementById('submit-answer-btn');
+
+    // Lock all answer options after final submission
+    const allBtns = optionsContainer.querySelectorAll('.player-option');
+    allBtns.forEach(b => {
+        b.disabled = true;
+    });
+
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Answer Submitted';
+    }
+
+    socket.emit('submit_answer', {
+        participantId,
+        sessionCode,
+        questionId: currentQuestion.id,
+        answerIndex: selectedAnswer
+    });
+}
 // Show a readable answer distribution without canvas axis-label truncation.
 function showResultsChart(data) {
   const counts = data.stats.counts;
