@@ -7797,3 +7797,45 @@ select:focus-visible {
   .survey-finale-option-track span,
   .survey-response-progress span { transition: none; }
 }
+/* Submit Answer Button */
+.submit-answer-btn {
+    width: 100%;
+    margin-top: 20px;
+    padding: 16px 24px;
+
+    background: linear-gradient(135deg, #7c5cff, #6842f5);
+    color: #ffffff;
+
+    border: none;
+    border-radius: 14px;
+
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+
+    cursor: pointer;
+
+    box-shadow: 0 8px 22px rgba(108, 76, 255, 0.28);
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        opacity 0.2s ease;
+}
+
+.submit-answer-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(108, 76, 255, 0.38);
+}
+
+.submit-answer-btn:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.submit-answer-btn:disabled {
+    background: #4b5563;
+    color: #d1d5db;
+    cursor: not-allowed;
+    box-shadow: none;
+    opacity: 0.75;
+}
